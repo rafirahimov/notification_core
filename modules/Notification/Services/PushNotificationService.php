@@ -46,7 +46,7 @@ class PushNotificationService
             }
 
             // Message yarat
-            $message = Message::create([
+            $message = Message::query()->create([
                 'bundle_id' => $client->bundle_id,
                 'category' => $data['meta']['channel'] ?? 'system',
                 'title' => strip_tags($data['message']['title']),
@@ -68,7 +68,7 @@ class PushNotificationService
 
             if (!$sent) {
                 DB::rollBack();
-                return $this->buildError(500, 'Failed to queue message');
+                return $this->buildError(500, 'Failed to queue message', [$result['error'] ?? 'Unknown error']);
             }
 
             DB::commit();

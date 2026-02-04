@@ -85,18 +85,29 @@ class KafkaService
     /**
      * Push notification göndər
      */
-    public function sendPushNotification(array $payload): bool
+// KafkaService.php
+
+    public function sendPushNotification(array $payload): array
     {
         $topic = config('kafka.topics.message_expand');
         try {
-            return $this->send($topic, $payload, $payload['message_id'] ?? null);
+            $success = $this->send($topic, $payload, $payload['message_id'] ?? null);
+            return [
+                'success' => $success,
+                'error' => null
+            ];
         } catch (\Exception $exception) {
+            Log::error('Kafka push notification failed', [
+                'message' => $exception->getMessage(),
+                'payload' => $payload
+            ]);
 
-            var_dump($exception->getMessage());
-            return false;
+            return [
+                'success' => false,
+                'error' => $exception->getMessage()
+            ];
         }
     }
-
     /**
      * Delivery event göndər
      */

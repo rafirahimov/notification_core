@@ -20,7 +20,7 @@ Route::middleware(CheckApiToken::class)
         });
 
     Route::controller(PushController::class)->prefix('push')->group(function () {
-        Route::post('send-to-user', 'sendToUser');
+//        Route::post('send-to-user', 'sendToUser');
         Route::post('send-to-device', 'sendToDevice');
         Route::post('send-to-group', 'sendToGroup');
         Route::post('send-bulk', 'sendBulk');
