@@ -115,59 +115,53 @@ class PinService
     }
 
     /**
-     * Add users to pin
+     * Add single user to pin
      */
-    public function addUsers(string $pin, array $data, Client $client): JsonResponse
+    public function addUser(string $pin, int $userId, Client $client): JsonResponse
     {
         DB::beginTransaction();
 
         try {
-            $addedCount = 0;
-            $skippedCount = 0;
+            // Check if already exists
+            $exists = AppUserPin::query()
+                ->where('bundle_id', $client->bundle_id)
+                ->where('pin', $pin)
+                ->where('app_user_id', $userId)
+                ->exists();
 
-            foreach ($data['user_ids'] as $userId) {
-                // Check if already exists
-                $exists = AppUserPin::query()
-                    ->where('bundle_id', $client->bundle_id)
-                    ->where('pin', $pin)
-                    ->where('app_user_id', $userId)
-                    ->exists();
-
-                if ($exists) {
-                    $skippedCount++;
-                    continue;
-                }
-
-                AppUserPin::query()->create([
-                    'app_user_id' => $userId,
-                    'bundle_id' => $client->bundle_id,
-                    'pin' => $pin,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]);
-
-                $addedCount++;
+            if ($exists) {
+                return $this->buildError(400, 'User already added to this pin');
             }
+
+            $record = AppUserPin::query()->create([
+                'app_user_id' => $userId,
+                'bundle_id' => $client->bundle_id,
+                'pin' => $pin,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
 
             DB::commit();
 
             return $this->buildSuccess([
+                'id' => $record->id,
                 'pin' => $pin,
-                'added' => $addedCount,
-                'skipped' => $skippedCount,
-                'total' => count($data['user_ids']),
-            ], 'Users added to pin');
+                'app_user_id' => $userId,
+                'bundle_id' => $client->bundle_id,
+                'created_at' => $record->created_at,
+                'updated_at' => $record->updated_at,
+            ], 'User added to pin successfully');
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return $this->buildError(500, 'Failed to add users: ' . $e->getMessage());
+            return $this->buildError(500, 'Failed to add user: ' . $e->getMessage());
         }
     }
 
     /**
-     * Remove users from pin
+     * Remove single user from pin
      */
-    public function removeUsers(string $pin, array $data, Client $client): JsonResponse
+    public function removeUser(string $pin, int $userId, Client $client): JsonResponse
     {
         DB::beginTransaction();
 
@@ -175,20 +169,24 @@ class PinService
             $deleted = AppUserPin::query()
                 ->where('bundle_id', $client->bundle_id)
                 ->where('pin', $pin)
-                ->whereIn('app_user_id', $data['user_ids'])
+                ->where('app_user_id', $userId)
                 ->delete();
+
+            if ($deleted === 0) {
+                DB::rollBack();
+                return $this->buildError(404, 'User not found in this pin');
+            }
 
             DB::commit();
 
             return $this->buildSuccess([
                 'pin' => $pin,
-                'removed' => $deleted,
-                'requested' => count($data['user_ids']),
-            ], 'Users removed from pin');
+                'app_user_id' => $userId,
+            ], 'User removed from pin successfully');
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return $this->buildError(500, 'Failed to remove users: ' . $e->getMessage());
+            return $this->buildError(500, 'Failed to remove user: ' . $e->getMessage());
         }
     }
 

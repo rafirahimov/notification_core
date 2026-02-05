@@ -44,31 +44,29 @@ class PinController
     }
 
     /**
-     * Add users to pin
+     * Add single user to pin
      */
-    public function addUsers(Request $request, string $pin): JsonResponse
+    public function addUser(Request $request, string $pin): JsonResponse
     {
         $request->validate([
-            'user_ids' => 'required|array|min:1|max:1000',
-            'user_ids.*' => 'required|integer',
+            'user_id' => 'required|integer',
         ]);
 
         $client = app('notification.client');
-        return $this->pinService->addUsers($pin, $request->all(), $client);
+        return $this->pinService->addUser($pin, $request->user_id, $client);
     }
 
     /**
-     * Remove users from pin
+     * Remove single user from pin
      */
-    public function removeUsers(Request $request, string $pin): JsonResponse
+    public function removeUser(Request $request, string $pin): JsonResponse
     {
         $request->validate([
-            'user_ids' => 'required|array|min:1',
-            'user_ids.*' => 'required|integer',
+            'user_id' => 'required|integer',
         ]);
 
         $client = app('notification.client');
-        return $this->pinService->removeUsers($pin, $request->all(), $client);
+        return $this->pinService->removeUser($pin, $request->user_id, $client);
     }
 
     /**

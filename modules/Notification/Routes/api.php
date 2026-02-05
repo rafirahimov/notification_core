@@ -46,15 +46,15 @@ Route::middleware(CheckApiToken::class)
         });
 
         // Pin Management
-        // Pin Management
         Route::controller(PinController::class)->prefix('pins')->group(function () {
             Route::get('/', 'index');
-            Route::post('{pin}/users', 'addUsers');
             Route::get('{pin}/users', 'users');
-            Route::delete('{pin}/users', 'removeUsers');
-            Route::get('{pin}', 'show')->where('pin', '.*');
-            Route::delete('{pin}', 'destroy')->where('pin', '.*');
+            Route::post('{pin}/user', 'addUser');
+            Route::delete('{pin}/user', 'removeUser');
+            Route::get('{pin}', 'show');
+            Route::delete('{pin}', 'destroy');
         });
+
     });
 
 Route::prefix('kafka')->group(function () {
