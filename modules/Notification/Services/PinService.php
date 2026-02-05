@@ -23,15 +23,19 @@ class PinService
                 ->where('bundle_id', $client->bundle_id)
                 ->select('pin')
                 ->selectRaw('COUNT(DISTINCT app_user_id) as user_count')
+                ->selectRaw('MIN(id) as id')
                 ->selectRaw('MIN(created_at) as created_at')
+                ->selectRaw('MAX(updated_at) as updated_at')
                 ->groupBy('pin')
                 ->orderBy('pin')
                 ->get()
                 ->map(function ($item) {
                     return [
+                        'id' => $item->id,
                         'pin' => $item->pin,
                         'user_count' => $item->user_count,
                         'created_at' => $item->created_at,
+                        'updated_at' => $item->updated_at,
                     ];
                 });
 
@@ -51,6 +55,9 @@ class PinService
             $pinData = AppUserPin::query()
                 ->where('bundle_id', $client->bundle_id)
                 ->where('pin', $pin)
+                ->selectRaw('MIN(id) as id')
+                ->selectRaw('MIN(created_at) as created_at')
+                ->selectRaw('MAX(updated_at) as updated_at')
                 ->first();
 
             if (!$pinData) {
@@ -64,9 +71,12 @@ class PinService
                 ->count('app_user_id');
 
             return $this->buildSuccess([
+                'id' => $pinData->id,
                 'pin' => $pin,
+                'bundle_id' => $client->bundle_id,
                 'user_count' => $userCount,
                 'created_at' => $pinData->created_at,
+                'updated_at' => $pinData->updated_at,
             ]);
 
         } catch (\Exception $e) {
@@ -199,10 +209,11 @@ class PinService
                 ->where('bundle_id', $client->bundle_id)
                 ->where('pin', $pin)
                 ->orderBy('created_at', 'desc')
-                ->get(['app_user_id', 'created_at']);
+                ->get(['id', 'app_user_id', 'bundle_id', 'pin', 'created_at', 'updated_at']);
 
             return $this->buildSuccess([
                 'pin' => $pin,
+                'bundle_id' => $client->bundle_id,
                 'total_users' => $users->count(),
                 'users' => $users,
             ]);
