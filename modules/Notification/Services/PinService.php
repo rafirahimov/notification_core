@@ -29,6 +29,8 @@ class PinService
                 ->get()
                 ->map(function ($item) {
                     return [
+                        'id' => $item->id,
+                        'bundle_id' => $item->bundle_id,
                         'pin' => $item->pin,
                         'user_count' => $item->user_count,
                         'created_at' => $item->created_at,
