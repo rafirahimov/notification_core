@@ -19,7 +19,7 @@ class PinService
     public function list(Client $client): JsonResponse
     {
         try {
-            $pins = AppUserPin::query()
+            $pins = DB::table('notification.app_user_pin')
                 ->where('bundle_id', $client->bundle_id)
                 ->select('pin')
                 ->selectRaw('COUNT(DISTINCT app_user_id) as user_count')
@@ -52,29 +52,31 @@ class PinService
     public function show(string $pin, Client $client): JsonResponse
     {
         try {
-            $pinData = AppUserPin::query()
+            // First check if pin exists
+            $exists = AppUserPin::query()
                 ->where('bundle_id', $client->bundle_id)
                 ->where('pin', $pin)
-                ->selectRaw('MIN(id) as id')
-                ->selectRaw('MIN(created_at) as created_at')
-                ->selectRaw('MAX(updated_at) as updated_at')
-                ->first();
+                ->exists();
 
-            if (!$pinData) {
+            if (!$exists) {
                 return $this->buildError(404, 'Pin not found');
             }
 
-            $userCount = AppUserPin::query()
+            // Get pin data
+            $pinData = DB::table('notification.app_user_pin')
                 ->where('bundle_id', $client->bundle_id)
                 ->where('pin', $pin)
-                ->distinct('app_user_id')
-                ->count('app_user_id');
+                ->selectRaw('MIN(id) as id')
+                ->selectRaw('COUNT(DISTINCT app_user_id) as user_count')
+                ->selectRaw('MIN(created_at) as created_at')
+                ->selectRaw('MAX(updated_at) as updated_at')
+                ->first();
 
             return $this->buildSuccess([
                 'id' => $pinData->id,
                 'pin' => $pin,
                 'bundle_id' => $client->bundle_id,
-                'user_count' => $userCount,
+                'user_count' => $pinData->user_count,
                 'created_at' => $pinData->created_at,
                 'updated_at' => $pinData->updated_at,
             ]);
