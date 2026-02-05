@@ -21,7 +21,6 @@ class PinService
         try {
             $pins = AppUserPin::query()
                 ->where('bundle_id', $client->bundle_id)
-                ->select('pin')
                 ->selectRaw('COUNT(DISTINCT app_user_id) as user_count')
                 ->selectRaw('MIN(created_at) as created_at')
                 ->groupBy('pin')
