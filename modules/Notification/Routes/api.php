@@ -46,13 +46,14 @@ Route::middleware(CheckApiToken::class)
         });
 
         // Pin Management
+        // Pin Management
         Route::controller(PinController::class)->prefix('pins')->group(function () {
             Route::get('/', 'index');
-            Route::get('{pin}', 'show');
-            Route::delete('{pin}', 'destroy');
             Route::post('{pin}/users', 'addUsers');
             Route::get('{pin}/users', 'users');
             Route::delete('{pin}/users', 'removeUsers');
+            Route::get('{pin}', 'show')->where('pin', '.*');
+            Route::delete('{pin}', 'destroy')->where('pin', '.*');
         });
     });
 
