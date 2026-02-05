@@ -21,7 +21,7 @@ class PinService
         try {
             $pins = AppUserPin::query()
                 ->where('bundle_id', $client->bundle_id)
-                ->select('id', 'app_user_id', 'bundle_id', 'pin')
+                ->select('pin')
                 ->selectRaw('COUNT(DISTINCT app_user_id) as user_count')
                 ->selectRaw('MIN(created_at) as created_at')
                 ->groupBy('pin')
@@ -29,9 +29,6 @@ class PinService
                 ->get()
                 ->map(function ($item) {
                     return [
-                        'id' => $item->id,
-                        'app_user_id' => $item->app_user_id,
-                        'bundle_id' => $item->bundle_id,
                         'pin' => $item->pin,
                         'user_count' => $item->user_count,
                         'created_at' => $item->created_at,
@@ -67,9 +64,6 @@ class PinService
                 ->count('app_user_id');
 
             return $this->buildSuccess([
-                'id' => $pinData->id,
-                'app_user_id' => $pinData->app_user_id,
-                'bundle_id' => $pinData->bundle_id,
                 'pin' => $pin,
                 'user_count' => $userCount,
                 'created_at' => $pinData->created_at,
