@@ -49,8 +49,8 @@ Route::middleware(CheckApiToken::class)
         Route::controller(PinController::class)->prefix('pins')->group(function () {
             Route::get('/', 'index');
             Route::get('{pin}/users', 'users');
-            Route::post('{pin}/user', 'addUser');
-            Route::delete('{pin}/user', 'removeUser');
+            Route::post('user', 'addUser');
+            Route::delete('user', 'removeUser');
             Route::get('{pin}', 'show');
             Route::delete('{pin}', 'destroy');
         });

@@ -117,7 +117,7 @@ class PinService
     /**
      * Add single user to pin
      */
-    public function addUser(string $pin, int $userId, Client $client): JsonResponse
+    public function addUser(array $data, Client $client): JsonResponse
     {
         DB::beginTransaction();
 
@@ -125,8 +125,8 @@ class PinService
             // Check if already exists
             $exists = AppUserPin::query()
                 ->where('bundle_id', $client->bundle_id)
-                ->where('pin', $pin)
-                ->where('app_user_id', $userId)
+                ->where('pin', $data['pin'])
+                ->where('app_user_id', $data['user_id'])
                 ->exists();
 
             if ($exists) {
@@ -134,9 +134,9 @@ class PinService
             }
 
             $record = AppUserPin::query()->create([
-                'app_user_id' => $userId,
+                'app_user_id' => $data['user_id'],
                 'bundle_id' => $client->bundle_id,
-                'pin' => $pin,
+                'pin' => $data['pin'],
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
@@ -145,8 +145,8 @@ class PinService
 
             return $this->buildSuccess([
                 'id' => $record->id,
-                'pin' => $pin,
-                'app_user_id' => $userId,
+                'pin' => $data['pin'],
+                'app_user_id' => $data['user_id'],
                 'bundle_id' => $client->bundle_id,
                 'created_at' => $record->created_at,
                 'updated_at' => $record->updated_at,
@@ -161,15 +161,15 @@ class PinService
     /**
      * Remove single user from pin
      */
-    public function removeUser(string $pin, int $userId, Client $client): JsonResponse
+    public function removeUser(array $data, Client $client): JsonResponse
     {
         DB::beginTransaction();
 
         try {
             $deleted = AppUserPin::query()
                 ->where('bundle_id', $client->bundle_id)
-                ->where('pin', $pin)
-                ->where('app_user_id', $userId)
+                ->where('pin', $data['pin'])
+                ->where('app_user_id', $data['user_id'])
                 ->delete();
 
             if ($deleted === 0) {
@@ -180,8 +180,8 @@ class PinService
             DB::commit();
 
             return $this->buildSuccess([
-                'pin' => $pin,
-                'app_user_id' => $userId,
+                'pin' => $data['pin'],
+                'app_user_id' => $data['user_id'],
             ], 'User removed from pin successfully');
 
         } catch (\Exception $e) {
