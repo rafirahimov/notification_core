@@ -221,9 +221,16 @@ class PushNotificationService
             // Hər target-i resolve et
             foreach ($data['targets'] as $target) {
                 try {
-                    $userId = $this->resolveTarget($target, $client->bundle_id);
-                    if ($userId) {
-                        $userIds[] = $userId;
+                    $resolved = $this->resolveTarget($target, $client->bundle_id);
+
+                    if ($resolved) {
+                        // Array-dırsa (tag), birləşdir
+                        if (is_array($resolved)) {
+                            $userIds = array_merge($userIds, $resolved);
+                        } else {
+                            // Tək user_id-dirsə əlavə et
+                            $userIds[] = $resolved;
+                        }
                     } else {
                         $failed[] = [
                             'type' => $target['type'],
@@ -313,7 +320,30 @@ class PushNotificationService
                 ->where('device_id', $target['value'])
                 ->value('app_user_id'),
 
+            'tag' => $this->getUserIdsByTag($target['value'], $bundleId),
+
             default => null
         };
+    }
+
+    private function getUserIdsByTag(string $tagName, string $bundleId): ?array
+    {
+        $tag = Tag::query()
+            ->where('bundle_id', $bundleId)
+            ->where('name', $tagName)
+            ->first();
+
+        if (!$tag) {
+            return null;
+        }
+
+        $userIds = AppUserTag::query()
+            ->where('bundle_id', $bundleId)
+            ->where('tag_id', $tag->id)
+            ->distinct()
+            ->pluck('app_user_id')
+            ->toArray();
+
+        return !empty($userIds) ? $userIds : null;
     }
 }
