@@ -305,7 +305,7 @@ class PushNotificationService
     /**
      * Target-i user_id-yə resolve et
      */
-    private function resolveTarget(array $target, string $bundleId): ?int
+    private function resolveTarget(array $target, string $bundleId): array|int|null
     {
         return match($target['type']) {
             'user_id' => (int) $target['value'],
