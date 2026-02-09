@@ -15,7 +15,7 @@ class SendPushBulkRequest extends FormRequest
     {
         return [
             'targets' => 'required|array|min:1|max:1000',
-            'targets.*.type' => 'required|in:user_id,pin,device_id',
+            'targets.*.type' => 'required|in:user_id,pin,device_id,tag',
             'targets.*.value' => 'required',
             'message' => 'required|array',
             'message.title' => 'required|string|max:255',

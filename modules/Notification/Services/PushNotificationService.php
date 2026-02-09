@@ -254,7 +254,7 @@ class PushNotificationService
 
             // Hər user üçün ayrı message yarat
             foreach ($userIds as $userId) {
-                $message = Message::create([
+                $message = Message::query()->create([
                     'bundle_id' => $client->bundle_id,
                     'category' => $data['meta']['channel'] ?? 'system',
                     'title' => strip_tags($data['message']['title']),
